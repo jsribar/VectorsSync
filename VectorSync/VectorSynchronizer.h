@@ -4,7 +4,17 @@
 #include <algorithm>
 #include <iterator>
 
-void VodiFunct() {}
+/////////////////////////////////////////////////////////////////////
+// A utility class that should provide shortest sequence
+// of insert, remove and move operations in order to
+// synchronize source vector of items with targeted
+// sequence.
+// T - type of data in the vector
+// Callback - class with callback methods:
+//              Insert(T item, size_t index);
+//              Remove(size_t index);
+//              Move(size_t from, size_t to);
+// Pred - A binary predicate used for item equality check
 
 template<typename T, typename Callback, typename Pred = equal_to<T>>
 class VectorSynchronizer
@@ -27,7 +37,6 @@ public:
 		ReorderItems(targeted);
 
 		AddMissingItems(targeted);
-		//ReorderItems(targeted);
 		return m_source;
 	}
 
@@ -51,7 +60,7 @@ private:
 		for (auto it = toRemove.crbegin(); it != toRemove.crend(); ++it)
 		{
 			size_t index = *it;
-			m_callback.RemoveFunction(index);
+			m_callback.Remove(index);
 			const auto& offset = m_source.begin() + index;
 			m_source.erase(offset);
 		}
@@ -97,14 +106,14 @@ private:
 		for (const auto& item : itemsToAdd)
 		{
 			size_t index = std::find(targeted.cbegin(), targeted.cend(), item) - targeted.begin();
-			m_callback.InsertFunction(item, index);
+			m_callback.Insert(item, index);
 			m_source.insert(m_source.begin() + index, item);
 		}
 	}
 
 	void Move(size_t from, size_t to)
 	{
-		m_callback.MoveFunction(from, to);
+		m_callback.Move(from, to);
 		if (from > to)
 			std::swap(from, to);
 

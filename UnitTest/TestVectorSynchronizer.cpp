@@ -16,17 +16,17 @@ namespace UnitTest
 			cerr << "RemoveFunctionCalls: " << RemoveFunctionCalls << endl;
 			cerr << "MoveFunctionCalls: " << MoveFunctionCalls << endl << endl;
 		}
-		void InsertFunction(string value, int position)
+		void Insert(string value, int position)
 		{
 			++InsertFunctionCalls;
 		}
 
-		void RemoveFunction(int position)
+		void Remove(int position)
 		{
 			++RemoveFunctionCalls;
 		}
 
-		void MoveFunction(int from, int to)
+		void Move(int from, int to)
 		{
 			++MoveFunctionCalls;
 		}
