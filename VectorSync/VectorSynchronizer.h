@@ -87,15 +87,10 @@ private:
 
 	Items ItemsToAdd(const Items& targeted) const
 	{
-		return ItemsInFirstButNotInSecond(targeted, m_source);
-	}
-
-	Items ItemsInFirstButNotInSecond(const Items& first, const Items& second) const
-	{
 		Items result;
-		std::copy_if(first.cbegin(), first.cend(), std::back_inserter(result), [&second](const T& item)
+		std::copy_if(targeted.cbegin(), targeted.cend(), std::back_inserter(result), [this](const T& item)
 		{
-			return std::find(second.cbegin(), second.cend(), item) == second.cend();
+			return std::find(m_source.cbegin(), m_source.cend(), item) == m_source.cend();
 		});
 		return result;
 	}
