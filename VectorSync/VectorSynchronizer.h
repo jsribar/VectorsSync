@@ -4,15 +4,21 @@
 #include <algorithm>
 #include <iterator>
 
-template<typename T>
-class VectorsSynchronizer
+void VodiFunct() {}
+
+template<typename T, typename Callback, typename Pred = equal_to<T>>
+class VectorSynchronizer
 {
 	using Items = std::vector<T>;
 	using Indices = std::vector<size_t>;
 
 public:
-	VectorsSynchronizer(const Items& source) : m_source(source) {}
-	~VectorsSynchronizer() {}
+	VectorSynchronizer(const Items& source, Callback& callback) 
+		: m_source(source)
+		, m_callback(callback)
+	{}
+
+	~VectorSynchronizer() {}
 
 	Items SynchronizeToDestination(const Items& targeted)
 	{
@@ -21,14 +27,13 @@ public:
 		ReorderItems(targeted);
 
 		AddMissingItems(targeted);
-		ReorderItems(targeted);
+		//ReorderItems(targeted);
 		return m_source;
 	}
 
-	const Items& GetSource() const { return m_source; }
-
 private:
 	Items m_source;
+	Callback& m_callback;
 
 	Indices IndicesOfItemsToRemove(const Items& targeted) const
 	{
@@ -46,6 +51,7 @@ private:
 		for (auto it = toRemove.crbegin(); it != toRemove.crend(); ++it)
 		{
 			size_t index = *it;
+			m_callback.RemoveFunction(index);
 			const auto& offset = m_source.begin() + index;
 			m_source.erase(offset);
 		}
@@ -88,11 +94,17 @@ private:
 	void AddMissingItems(const Items& targeted)
 	{
 		const auto& itemsToAdd = ItemsToAdd(targeted);
-		m_source.insert(m_source.end(), itemsToAdd.cbegin(), itemsToAdd.cend());
+		for (const auto& item : itemsToAdd)
+		{
+			size_t index = std::find(targeted.cbegin(), targeted.cend(), item) - targeted.begin();
+			m_callback.InsertFunction(item, index);
+			m_source.insert(m_source.begin() + index, item);
+		}
 	}
 
 	void Move(size_t from, size_t to)
 	{
+		m_callback.MoveFunction(from, to);
 		if (from > to)
 			std::swap(from, to);
 
