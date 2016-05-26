@@ -19,30 +19,35 @@
 template<typename T, typename Callback, typename Pred = equal_to<T>>
 class VectorSynchronizer
 {
+public:
 	using Items = std::vector<T>;
 	using Indices = std::vector<size_t>;
 
-public:
 	VectorSynchronizer(const Items& source, Callback& callback) 
 		: m_source(source)
 		, m_callback(callback)
 	{}
 
-	~VectorSynchronizer() {}
+	virtual ~VectorSynchronizer() {}
 
 	Items SynchronizeToDestination(const Items& targeted)
 	{
 		const auto& itemsToRemove = IndicesOfItemsToRemove(targeted);
+		return DoSynchronization(targeted, itemsToRemove);
+	}
+
+protected:
+	Items m_source;
+	Callback& m_callback;
+
+	virtual Items DoSynchronization(const Items& targeted, const Indices& itemsToRemove)
+	{
 		RemoveItems(itemsToRemove);
 		ReorderItems(targeted);
 
-		AddMissingItems(targeted);
+		InsertMissingItems(targeted);
 		return m_source;
 	}
-
-private:
-	Items m_source;
-	Callback& m_callback;
 
 	Indices IndicesOfItemsToRemove(const Items& targeted) const
 	{
@@ -95,7 +100,7 @@ private:
 		return result;
 	}
 
-	void AddMissingItems(const Items& targeted)
+	size_t InsertMissingItems(const Items& targeted)
 	{
 		const auto& itemsToAdd = ItemsToAdd(targeted);
 		for (const auto& item : itemsToAdd)
@@ -104,6 +109,7 @@ private:
 			m_callback.Insert(item, index);
 			m_source.insert(m_source.begin() + index, item);
 		}
+		return itemsToAdd.size();
 	}
 
 	void Move(size_t from, size_t to)
@@ -118,3 +124,31 @@ private:
 	}
 };
 
+// derived version which tries to avoid empty vector if all
+// source vector items should be removed
+template<typename T, typename Callback, typename Pred = equal_to<T>>
+class VectorSynchronizerNoEmpty : public VectorSynchronizer<T, Callback, Pred>
+{
+public:
+	VectorSynchronizerNoEmpty(const Items& source, Callback& callback) : VectorSynchronizer(source, callback)
+	{}
+
+protected:
+	Items DoSynchronization(const Items& targeted, const Indices& itemsToRemove) override
+	{
+		if (m_source.size() > itemsToRemove.size())
+			return VectorSynchronizer::DoSynchronization(targeted, itemsToRemove);
+
+		size_t added = InsertMissingItems(targeted);
+		// since missing items have been inserted to the begining
+		// all items to follow can be removed
+		Indices toRemove;
+		while (added < m_source.size())
+		{
+			toRemove.push_back(added);
+			++added;
+		}
+		RemoveItems(toRemove);
+		return m_source;
+	}
+};

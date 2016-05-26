@@ -96,5 +96,62 @@ namespace UnitTest
 			StringVectorSynchronizer vs(initial, sl);
 			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
 		}
+
+
+		using StringVectorSynchronizerNoEmpty = VectorSynchronizerNoEmpty<string, StepLogger>;
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsItemsReorderedAccordingToTarget)
+		{
+			vector<string> initial{ "Zagreb", "Wien", "Paris", "Roma", "London" };
+			vector<string> targeted{ "Paris", "Zagreb", "London", "Wien", "Roma" };
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsItemsWithAdditionalItemsReorderedAccordingToTarget)
+		{
+			vector<string> initial{ "Zagreb", "Wien", "Paris" };
+			vector<string> targeted{ "Paris", "Zagreb", "London", "Wien", "Roma" };
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsItemsExcludingRemovedItemsReorderedAccordingToTarget)
+		{
+			vector<string> initial{ "Zagreb", "Wien", "Paris", "London", "Roma" };
+			vector<string> targeted{ "Roma", "London", "Paris" };
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsItemsReorderedAccordingToTargetForCompletelyDifferentLists)
+		{
+			vector<string> initial{ "Zagreb", "Wien", "Paris", "London", "Roma" };
+			vector<string> targeted{ "Madrid", "Lisboa", "Dublin", "Oslo", "Stockholm" };
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsItemsReorderedAccordingToTargetForEmptyLists)
+		{
+			vector<string> initial;
+			vector<string> targeted{ "Madrid", "Lisboa", "Dublin", "Oslo", "Stockholm" };
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
+
+		TEST_METHOD(VectorSynchronizerNoEmpty_Synchronize_ReturnsEmptyVectorIfTargetIsEmpty)
+		{
+			vector<string> initial{ "Madrid", "Lisboa", "Dublin", "Oslo", "Stockholm" };
+			vector<string> targeted;
+			StepLogger sl;
+			StringVectorSynchronizerNoEmpty vs(initial, sl);
+			Assert::IsTrue(vs.SynchronizeToDestination(targeted) == targeted);
+		}
 	};
 }
